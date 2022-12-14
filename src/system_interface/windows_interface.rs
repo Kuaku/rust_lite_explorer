@@ -1,6 +1,6 @@
 use crate::system_interface::{SystemInterface, File};
 use windows::{core::*, Win32::Storage::FileSystem::*};
-use std::{fs, ffi::CString};
+use std::{fs, ffi::CString, result::Result};
 
 
 pub struct WindowsInterface;
@@ -48,15 +48,28 @@ impl WindowsInterface {
             let path = file.path();
             if path.is_dir() {
                 files.push(File { file_type: super::FileType::Dir, childs: vec![], name: file.file_name().into_string().unwrap(), path: String::from(path.to_str().unwrap()) })
+            } else {
+                files.push(File { file_type: super::FileType::None, childs: vec![], name: file.file_name().into_string().unwrap(), path: String::from(path.to_str().unwrap()) })
             }
         }
         files
     }
+
+    fn dir_content_as_string(&self, path: String) -> Result<Vec<String>, ()> {
+        let filesres = fs::read_dir(path);
+        if filesres.is_err() {
+            return Err(());
+        }
+        Ok(filesres.unwrap().into_iter().map(|f| String::from(f.unwrap().file_name().as_os_str().to_str().unwrap())).collect())
+    }
 }
 
 impl SystemInterface for WindowsInterface {
-    fn load_file(&self, file: &mut File) {
+    fn dir_content(&self, file: &File) -> Result<Vec<String>, ()> {
+        self.dir_content_as_string(file.path.clone())
+    }
 
+    fn load_file(&self, file: &mut File) {
         match file.file_type {
             super::FileType::Root => {
                 file.childs = self.get_drives();

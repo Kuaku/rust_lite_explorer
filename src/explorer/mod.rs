@@ -8,7 +8,9 @@ pub struct Explorer {
 
 impl Explorer {
     pub fn new(system_interface: Box<dyn SystemInterface>) -> Explorer {
-        Explorer { system_interface, mom_file: File::new_root(vec![]), history: vec![] }
+        let mut out = Explorer { system_interface, mom_file: File::new_root(vec![]), history: vec![] };
+        out.load_file();
+        out
     }
 
     pub fn load_file(&mut self) {
@@ -34,11 +36,15 @@ impl Explorer {
         self.load_file();
     }
 
-    pub fn get_file(&mut self) -> &File {
+    pub fn get_dir_content(&self, file: &File) -> Result<Vec<String>, ()> {
+        self.system_interface.dir_content(file)
+    }
+
+    pub fn get_file(&self) -> &File {
         &self.mom_file
     }
 
-    pub fn get_prev(&mut self) -> Option<&File> {
+    pub fn get_prev(&self) -> Option<&File> {
         if self.history.len() > 0 {
             return Some(self.history.get(self.history.len() - 1).unwrap());
         }

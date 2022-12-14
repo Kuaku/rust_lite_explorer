@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+tui = "0.19"
+crossterm = "0.25"
 
 [dependencies.windows]
 version = "0.43.0"
